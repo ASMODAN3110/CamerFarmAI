@@ -1,8 +1,8 @@
-# Backend - Structure du Projet
+# Backend - Application Web ETSIA
 
 ## Vue d'ensemble
 
-Ce projet est une application backend Node.js/Express qui suit une architecture modulaire et organisée.
+Ce projet est une application backend Node.js/Express/TypeScript qui suit une architecture modulaire et organisée. Il implémente un système d'authentification complet avec JWT pour une application de gestion agricole.
 
 ## Structure des dossiers
 
@@ -11,102 +11,255 @@ Backend/
 ├── node_modules/          # Dépendances npm installées
 ├── package.json           # Configuration npm et dépendances
 ├── package-lock.json      # Verrouillage des versions des dépendances
+├── tsconfig.json          # Configuration TypeScript
+├── .env                   # Variables d'environnement (non versionné)
+├── .gitignore            # Fichiers à ignorer par Git
 ├── README.md              # Documentation du projet
 └── src/                   # Code source de l'application
-    ├── config/            # Fichiers de configuration (base de données, variables d'environnement, etc.)
-    ├── controllers/       # Contrôleurs - Logique métier et gestion des requêtes HTTP
-    ├── middleware/        # Middlewares Express (authentification, validation, logging, etc.)
-    ├── migrations/        # Scripts de migration de base de données
-    ├── models/            # Modèles de données (schémas, entités)
+    ├── config/            # Configuration
+    │   └── database.ts    # Configuration TypeORM
+    ├── controllers/       # Contrôleurs HTTP
+    │   └── auth.controllers.ts
+    ├── middleware/        # Middlewares Express
+    │   └── auth.middleware.ts
+    ├── migrations/        # Migrations de base de données
+    │   └── 1700000000000-CreateUsersTable.ts
+    ├── models/            # Entités TypeORM
+    │   └── User.entity.ts
     ├── routes/            # Définition des routes API
-    └── services/          # Services métier et logique applicative réutilisable
+    │   └── auth.routes.ts
+    ├── services/          # Services métier
+    │   └── auth.service.ts
+    ├── types/             # Types TypeScript (DTOs)
+    │   └── auth.types.ts
+    ├── utils/             # Utilitaires
+    │   └── HttpException.ts
+    └── index.ts           # Point d'entrée de l'application
 ```
 
 ## Description des dossiers
 
 ### `/src/config`
 Contient les fichiers de configuration de l'application :
-- Configuration de la base de données
-- Variables d'environnement
-- Paramètres de l'application
-- Configuration des services externes
+- `database.ts` - Configuration TypeORM pour PostgreSQL
 
 ### `/src/controllers`
-Contient les contrôleurs qui gèrent la logique métier et les interactions avec les requêtes HTTP :
-- Traitement des requêtes entrantes
-- Validation des données
-- Appel aux services appropriés
-- Retour des réponses HTTP
+Contient les contrôleurs qui gèrent les requêtes HTTP :
+- `auth.controllers.ts` - Gestion de l'authentification (register, login, refresh, me, logout)
 
 ### `/src/middleware`
 Contient les middlewares Express personnalisés :
-- Authentification et autorisation
-- Validation des données
-- Gestion des erreurs
-- Logging et monitoring
-- Parsing des requêtes
+- `auth.middleware.ts` - Protection des routes, authentification JWT, gestion des rôles
 
 ### `/src/migrations`
 Contient les scripts de migration de base de données :
-- Création et modification des schémas
-- Gestion des versions de la base de données
-- Scripts de seed (données initiales)
+- `1700000000000-CreateUsersTable.ts` - Création de la table users
 
 ### `/src/models`
-Contient les modèles de données :
-- Définition des schémas
-- Relations entre entités
-- Validations au niveau modèle
-- Méthodes de requête personnalisées
+Contient les entités TypeORM :
+- `User.entity.ts` - Modèle utilisateur avec hashage automatique du mot de passe
 
 ### `/src/routes`
 Contient la définition des routes de l'API :
-- Définition des endpoints
-- Association routes/contrôleurs
-- Middlewares spécifiques aux routes
-- Versioning de l'API
+- `auth.routes.ts` - Routes d'authentification avec validation
 
 ### `/src/services`
 Contient la logique métier réutilisable :
-- Services métier indépendants
-- Intégration avec des APIs externes
-- Traitement de données complexes
-- Logique applicative partagée
+- `auth.service.ts` - Service d'authentification (inscription, validation, génération de tokens)
+
+### `/src/types`
+Contient les DTOs (Data Transfer Objects) :
+- `auth.types.ts` - Types pour RegisterDto et LoginDto
+
+### `/src/utils`
+Contient les utilitaires :
+- `HttpException.ts` - Classe d'exception HTTP personnalisée
 
 ## Technologies utilisées
 
+### Backend
 - **Node.js** - Runtime JavaScript
+- **TypeScript** - Langage de programmation typé
 - **Express** - Framework web pour Node.js
-- **Body-parser** - Middleware pour parser les corps de requêtes
-- **CORS** - Gestion des Cross-Origin Resource Sharing
-- **dotenv** - Gestion des variables d'environnement
+- **TypeORM** - ORM pour PostgreSQL
+- **PostgreSQL** - Base de données relationnelle
+
+### Sécurité & Authentification
+- **JWT (jsonwebtoken)** - Tokens d'authentification
+- **bcrypt** - Hashage des mots de passe
 - **Helmet** - Sécurisation des en-têtes HTTP
-- **Nodemon** - Outil de développement pour redémarrer automatiquement le serveur
+- **express-validator** - Validation des données d'entrée
+- **cookie-parser** - Gestion des cookies HTTP
+
+### Outils de développement
+- **ts-node** - Exécution TypeScript
+- **nodemon** - Redémarrage automatique du serveur
+- **dotenv** - Gestion des variables d'environnement
+- **CORS** - Gestion des Cross-Origin Resource Sharing
 
 ## Installation
 
 ```bash
+# Installer les dépendances
 npm install
+```
+
+## Configuration
+
+Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+
+```env
+# Base de données
+DATABASE_URL=postgresql://username:password@host:port/database
+
+# JWT
+JWT_SECRET=votre_secret_jwt_super_securise
+ACCESS_TOKEN_EXPIRES_IN=15m
+REFRESH_TOKEN_EXPIRES_IN=7d
+
+# Serveur
+PORT=3000
+NODE_ENV=development
 ```
 
 ## Scripts disponibles
 
 ```bash
-npm test          # Exécuter les tests (à configurer)
+npm run dev              # Démarrer le serveur en mode développement
+npm run migration:run    # Exécuter les migrations
+npm run migration:revert # Annuler la dernière migration
+npm run migration:generate # Générer une nouvelle migration
+```
+
+## API Endpoints
+
+### Authentification (`/api/v1/auth`)
+
+| Méthode | Endpoint | Description | Accès |
+|---------|----------|-------------|-------|
+| POST | `/register` | Inscription d'un nouvel utilisateur | Public |
+| POST | `/login` | Connexion utilisateur | Public |
+| POST | `/refresh` | Rafraîchir le token d'accès | Public |
+| GET | `/me` | Récupérer les infos de l'utilisateur connecté | Privé |
+| POST | `/logout` | Déconnexion | Privé |
+
+### Exemples de requêtes
+
+#### Inscription
+```bash
+POST /api/v1/auth/register
+Content-Type: application/json
+
+{
+  "phone": "690123456",
+  "password": "monMotDePasse123",
+  "firstName": "Pauline",
+  "lastName": "Ndoumbé",
+  "email": "pauline@example.com"
+}
+```
+
+#### Connexion
+```bash
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "pauline@example.com",
+  "password": "monMotDePasse123"
+}
+```
+
+#### Récupérer mon profil (protégé)
+```bash
+GET /api/v1/auth/me
+Authorization: Bearer <access_token>
 ```
 
 ## Architecture
 
 Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une API REST :
-- **Models** : Représentation des données
-- **Controllers** : Gestion des requêtes et réponses
-- **Routes** : Définition des endpoints
+- **Models** : Entités TypeORM (User)
+- **Controllers** : Gestion des requêtes et réponses HTTP
+- **Routes** : Définition des endpoints avec validation
 - **Services** : Logique métier réutilisable
-- **Middleware** : Traitement transversal des requêtes
+- **Middleware** : Authentification, validation, gestion des erreurs
+- **Types** : DTOs pour la validation des données
 
-## Notes
+## Niveau d'avancement
 
-- Le point d'entrée de l'application est défini dans `package.json` comme `index.js` (à créer à la racine ou dans `/src`)
-- Les variables d'environnement doivent être configurées dans un fichier `.env` à la racine du projet
-- La structure est prête pour l'ajout de fonctionnalités supplémentaires
+###  Implémenté
 
+- [x] Configuration TypeORM avec PostgreSQL
+- [x] Modèle User avec hashage automatique des mots de passe
+- [x] Système d'authentification complet (JWT)
+- [x] Inscription utilisateur
+- [x] Connexion utilisateur
+- [x] Rafraîchissement de token
+- [x] Récupération du profil utilisateur
+- [x] Déconnexion
+- [x] Middleware de protection des routes
+- [x] Validation des données avec express-validator
+- [x] Gestion des erreurs HTTP personnalisées
+- [x] Support des cookies HttpOnly pour les refresh tokens
+- [x] Migration de base de données
+
+###  En cours / À faire
+
+- [ ] Tests unitaires
+- [ ] Tests d'intégration
+- [ ] Documentation API (Swagger/OpenAPI)
+- [ ] Gestion des rôles (farmer, advisor, admin)
+- [ ] Réinitialisation de mot de passe
+- [ ] Gestion des langues (fr, en, pidgin)
+- [ ] Rate limiting
+- [ ] Logging avancé
+- [ ] Gestion des fichiers uploads
+
+## Sécurité
+
+-  Mots de passe hashés avec bcrypt (12 rounds)
+-  Tokens JWT avec expiration
+-  Refresh tokens dans des cookies HttpOnly
+-  Validation des données d'entrée
+-  Protection CORS configurée
+-  Headers de sécurité avec Helmet
+
+## Base de données
+
+### Table `users`
+
+| Colonne | Type | Description |
+|---------|------|-------------|
+| id | UUID | Identifiant unique (clé primaire) |
+| phone | VARCHAR | Numéro de téléphone (unique) |
+| email | VARCHAR | Email (unique, nullable) |
+| firstName | VARCHAR | Prénom (nullable) |
+| lastName | VARCHAR | Nom (nullable) |
+| role | VARCHAR | Rôle (farmer, advisor, admin) |
+| password | VARCHAR | Mot de passe hashé |
+| createdAt | TIMESTAMP | Date de création |
+| updatedAt | TIMESTAMP | Date de mise à jour |
+
+## Notes importantes
+
+- Le point d'entrée de l'application est `src/index.ts`
+- Les variables d'environnement doivent être configurées dans `.env`
+- La synchronisation automatique de la base de données est activée en développement (`synchronize: true`)
+- Les tokens d'accès expirent après 15 minutes
+- Les refresh tokens expirent après 7 jours
+- Le serveur démarre sur le port 3000 par défaut
+
+## Développement
+
+Pour démarrer le serveur en mode développement :
+
+```bash
+npm run dev
+```
+
+Le serveur sera accessible sur `http://localhost:3000`
+
+## Contribution
+
+Ce projet fait partie du livrable de la Phase 3, Partie 2 du projet ETSIA.

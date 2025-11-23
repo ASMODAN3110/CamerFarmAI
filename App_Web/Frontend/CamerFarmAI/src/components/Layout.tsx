@@ -1,6 +1,6 @@
 // src/components/Layout.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Facebook, Linkedin, Instagram, Youtube, Menu, X, Bell, User } from 'lucide-react';
+import { Facebook, Linkedin, Instagram, Youtube, Menu, X, Bell, User, LogOut } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -51,7 +51,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.35s ease',
   },
   connectButton: { backgroundColor: COLOR_SECONDARY, color: 'white' },
-  signupButton: { backgroundColor: COLOR_PRIMARY, color: 'white' },
+  signupButton: { backgroundColor: COLOR_SECONDARY, color: 'white' },
 
   hamburger: { background: 'none', border: 'none', fontSize: '1.8rem', cursor: 'pointer', color: '#333' },
 
@@ -168,6 +168,42 @@ const styles: { [key: string]: React.CSSProperties } = {
   notificationButtonContainer: {
     position: 'relative',
   },
+  profileButtonContainer: {
+    position: 'relative',
+  },
+  profileDropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: '0',
+    marginTop: '10px',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    minWidth: '200px',
+    zIndex: 1001,
+    overflow: 'hidden',
+  },
+  profileMenuItem: {
+    padding: '12px 16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    fontSize: '0.95rem',
+    color: '#333',
+    fontFamily: 'Arial, sans-serif',
+    borderBottom: '1px solid #f0f0f0',
+  },
+  profileMenuItemLast: {
+    borderBottom: 'none',
+  },
+  profileMenuItemHover: {
+    backgroundColor: '#f9f9f9',
+  },
+  profileMenuItemDanger: {
+    color: '#dc3545',
+  },
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -175,11 +211,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobile, setIsMobile] = useState(false);
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const { isAuthenticated, setIsAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isHistoriquePage = location.pathname === '/historique';
+  const isPlantationPage = location.pathname === '/plantation';
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   // Données d'exemple pour les notifications (à remplacer par de vraies données plus tard)
   interface Notification {
@@ -198,16 +237,28 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
         setNotificationsOpen(false);
       }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
     };
 
-    if (notificationsOpen) {
+    if (notificationsOpen || profileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [notificationsOpen]);
+  }, [notificationsOpen, profileMenuOpen]);
+
+  const handleLogout = () => {
+    // Supprimer les tokens
+    localStorage.removeItem('accessToken');
+    document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    setIsAuthenticated(false);
+    setProfileMenuOpen(false);
+    navigate('/');
+  };
 
   // Détection mobile
   useEffect(() => {
@@ -232,12 +283,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* VERSION DESKTOP */}
         {!isMobile && (
           <div style={styles.desktopRightMenu}>
-            {isHistoriquePage ? (
-              // Navigation pour la page Historique
+            {(isHistoriquePage || isPlantationPage) ? (
+              // Navigation pour les pages Historique et Plantation
               <>
                 <a href="/" style={styles.navLink}>Accueil</a>
                 <a href="/monitoring" style={styles.navLink}>Monitoring</a>
-                <a href="/historique" style={{ ...styles.navLink, ...styles.navLinkActive }}>Graphique</a>
+                <a href="/historique" style={isHistoriquePage ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}>Graphique</a>
+                <a href="/plantation" style={isPlantationPage ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}>Plantation</a>
                 <a href="/support" style={styles.navLink}>Support</a>
                 <a href="/ia" style={styles.navLink}>IA</a>
                 <div style={styles.notificationButtonContainer} ref={notificationsRef}>
@@ -284,21 +336,49 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     </div>
                   )}
                 </div>
-                <button 
-                  style={styles.iconButton}
-                  onMouseEnter={(e) => e.currentTarget.style.color = COLOR_PRIMARY}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#333'}
-                  onClick={() => navigate('/profil')}
-                  aria-label="Profil"
-                >
-                  <User size={22} />
-                </button>
+                <div style={styles.profileButtonContainer} ref={profileRef}>
+                  <button 
+                    style={styles.iconButton}
+                    onMouseEnter={(e) => e.currentTarget.style.color = COLOR_PRIMARY}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#333'}
+                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                    aria-label="Profil"
+                  >
+                    <User size={22} />
+                  </button>
+                  {profileMenuOpen && (
+                    <div style={styles.profileDropdown}>
+                      <div
+                        style={styles.profileMenuItem}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        onClick={() => {
+                          navigate('/profil');
+                          setProfileMenuOpen(false);
+                        }}
+                      >
+                        <User size={18} />
+                        Profil
+                      </div>
+                      <div
+                        style={{ ...styles.profileMenuItem, ...styles.profileMenuItemLast, ...styles.profileMenuItemDanger }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        onClick={handleLogout}
+                      >
+                        <LogOut size={18} />
+                        Déconnexion
+                      </div>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               // Navigation pour les autres pages
               <>
                 <a href="/" style={location.pathname === '/' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}>Accueil</a>
                 <a href="/historique" style={styles.navLink}>Graphique</a>
+                <a href="/plantation" style={isPlantationPage ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}>Plantation</a>
                 <a href="/support" style={location.pathname === '/support' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}>Support</a>
                 {!isAuthenticated && (
                   <>
@@ -323,12 +403,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {isMobile && (
         <div style={{ ...styles.mobileMenu, ...(mobileMenuOpen ? styles.mobileMenuOpen : {}) }}>
           <nav style={styles.mobileNavLinks}>
-            {isHistoriquePage ? (
-              // Navigation pour la page Historique
+            {(isHistoriquePage || isPlantationPage) ? (
+              // Navigation pour les pages Historique et Plantation
               <>
                 <a href="/" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Accueil</a>
                 <a href="/monitoring" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Monitoring</a>
-                <a href="/historique" style={{ ...styles.mobileNavLink, color: COLOR_PRIMARY }} onClick={() => setMobileMenuOpen(false)}>Graphique</a>
+                <a href="/historique" style={isHistoriquePage ? { ...styles.mobileNavLink, color: COLOR_PRIMARY } : styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Graphique</a>
+                <a href="/plantation" style={isPlantationPage ? { ...styles.mobileNavLink, color: COLOR_PRIMARY } : styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Plantation</a>
                 <a href="/support" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Support</a>
                 <a href="/ia" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>IA</a>
                 <div style={{ display: 'flex', gap: '20px', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e0e0e0' }}>
@@ -343,16 +424,46 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <Bell size={24} />
                     {notifications.length > 0 && <span style={styles.notificationBadge} />}
                   </button>
-                  <button 
-                    style={{ ...styles.iconButton, fontSize: '1.5rem' }}
-                    onClick={() => {
-                      navigate('/profil');
-                      setMobileMenuOpen(false);
-                    }}
-                    aria-label="Profil"
-                  >
-                    <User size={24} />
-                  </button>
+                  <div style={styles.profileButtonContainer} ref={profileRef}>
+                    <button 
+                      style={{ ...styles.iconButton, fontSize: '1.5rem' }}
+                      onClick={() => {
+                        setProfileMenuOpen(!profileMenuOpen);
+                      }}
+                      aria-label="Profil"
+                    >
+                      <User size={24} />
+                    </button>
+                    {profileMenuOpen && (
+                      <div style={{ ...styles.profileDropdown, position: 'absolute', top: '100%', left: '0', marginTop: '10px' }}>
+                        <div
+                          style={styles.profileMenuItem}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          onClick={() => {
+                            navigate('/profil');
+                            setProfileMenuOpen(false);
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <User size={18} />
+                          Profil
+                        </div>
+                        <div
+                          style={{ ...styles.profileMenuItem, ...styles.profileMenuItemLast, ...styles.profileMenuItemDanger }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          onClick={() => {
+                            handleLogout();
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <LogOut size={18} />
+                          Déconnexion
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             ) : (
@@ -360,6 +471,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <>
                 <a href="/" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Accueil</a>
                 <a href="/historique" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Graphique</a>
+                <a href="/plantation" style={isPlantationPage ? { ...styles.mobileNavLink, color: COLOR_PRIMARY } : styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Plantation</a>
                 <a href="/support" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Support</a>
               </>
             )}

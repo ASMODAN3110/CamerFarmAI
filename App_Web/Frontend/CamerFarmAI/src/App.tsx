@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout'; 
 import Home from './Pages/Home';
 import Graphique from './Pages/Historique';
+import Plantation from './Pages/Plantation';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext'; 
 
@@ -41,6 +42,12 @@ function App() {
             <Route 
               path="/historique" 
               element={<Graphique />} 
+            />
+            
+            {/* Route Plantation */}
+            <Route 
+              path="/plantation" 
+              element={<Plantation />} 
             />
             
             {/* Exemple d'autres routes futures basées sur le Layout.tsx :

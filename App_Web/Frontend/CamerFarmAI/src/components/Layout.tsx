@@ -1,6 +1,8 @@
 // src/components/Layout.tsx
-import React, { useState, useEffect } from 'react';
-import { Facebook, Linkedin, Instagram, Youtube, Menu, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Facebook, Linkedin, Instagram, Youtube, Menu, X, Bell, User } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const COLOR_PRIMARY = '#4CAF50';
 const COLOR_SECONDARY = '#388E3C';
@@ -43,6 +45,9 @@ navLink: {
   fontSize: '1.1rem',
   transition: 'color 0.3s ease',
   padding: '8px 0',
+},
+navLinkActive: {
+  color: COLOR_PRIMARY,
 },
 
 authButton: {
@@ -100,11 +105,116 @@ signupButton: {
   socialLinksCenter: { justifyContent: 'center' },
   socialIconLink: { color: 'white' },
   copyright: { textAlign: 'center', paddingTop: '30px', marginTop: '40px', borderTop: '1px solid #555', fontSize: '0.9rem', color: '#aaa' },
+  iconButton: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#333',
+    transition: 'color 0.3s ease',
+    position: 'relative',
+  },
+  iconButtonHover: {
+    color: COLOR_PRIMARY,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: '4px',
+    right: '4px',
+    width: '8px',
+    height: '8px',
+    backgroundColor: '#dc3545',
+    borderRadius: '50%',
+  },
+  notificationsDropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: '0',
+    marginTop: '10px',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    minWidth: '320px',
+    maxWidth: '400px',
+    maxHeight: '400px',
+    overflowY: 'auto',
+    zIndex: 1001,
+  },
+  notificationsHeader: {
+    padding: '16px',
+    borderBottom: '1px solid #e0e0e0',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  notificationsTitle: {
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  notificationsList: {
+    padding: '8px 0',
+  },
+  notificationItem: {
+    padding: '12px 16px',
+    borderBottom: '1px solid #f0f0f0',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  },
+  notificationItemHover: {
+    backgroundColor: '#f9f9f9',
+  },
+  notificationEmpty: {
+    padding: '40px 20px',
+    textAlign: 'center',
+    color: '#666',
+    fontSize: '0.9rem',
+  },
+  notificationButtonContainer: {
+    position: 'relative',
+  },
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHistoriquePage = location.pathname === '/historique';
+  const notificationsRef = useRef<HTMLDivElement>(null);
+
+  // Données d'exemple pour les notifications (à remplacer par de vraies données plus tard)
+  interface Notification {
+    id: number;
+    message: string;
+    time: string;
+  }
+  const notifications: Notification[] = [
+    // Exemple de notifications - à remplacer par de vraies données
+    // { id: 1, message: 'Nouvelle alerte: Humidité basse', time: 'Il y a 5 min' },
+  ];
+
+  // Fermer le menu de notifications quand on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    if (notificationsOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [notificationsOpen]);
 
   // Correction critique : on met à jour l'état au montage + à chaque resize
   useEffect(() => {
@@ -134,10 +244,82 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* VERSION DESKTOP : tout aligné à droite avec espacement régulier */}
 {!isMobile && (
   <div style={styles.desktopRightMenu}>
-    <a href="/" style={styles.navLink}>Accueil</a>
-    <a href="/support" style={styles.navLink}>Support</a>
-    <a href="/connexion" style={{ ...styles.authButton, ...styles.connectButton }}>Se Connecter</a>
-    <a href="/inscription" style={{ ...styles.authButton, ...styles.signupButton }}>S'inscrire</a>
+    {isHistoriquePage ? (
+      // Navigation pour la page Historique
+      <>
+        <a href="/" style={styles.navLink}>Accueil</a>
+        <a href="/monitoring" style={styles.navLink}>Monitoring</a>
+        <a href="/historique" style={{ ...styles.navLink, ...styles.navLinkActive }}>Graphique</a>
+        <a href="/support" style={styles.navLink}>Support</a>
+        <a href="/ia" style={styles.navLink}>IA</a>
+        <div style={styles.notificationButtonContainer} ref={notificationsRef}>
+          <button 
+            style={styles.iconButton}
+            onMouseEnter={(e) => e.currentTarget.style.color = COLOR_PRIMARY}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#333'}
+            onClick={() => setNotificationsOpen(!notificationsOpen)}
+            aria-label="Notifications"
+          >
+            <Bell size={22} />
+            {notifications.length > 0 && <span style={styles.notificationBadge} />}
+          </button>
+          {notificationsOpen && (
+            <div style={styles.notificationsDropdown}>
+              <div style={styles.notificationsHeader}>
+                <div style={styles.notificationsTitle}>Notifications</div>
+                <button
+                  onClick={() => setNotificationsOpen(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#666' }}
+                >
+                  ×
+                </button>
+              </div>
+              <div style={styles.notificationsList}>
+                {notifications.length > 0 ? (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      style={styles.notificationItem}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <div style={{ fontSize: '0.9rem', color: '#333', marginBottom: '4px' }}>{notif.message}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#999' }}>{notif.time}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={styles.notificationEmpty}>
+                    Aucune notification
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        <button 
+          style={styles.iconButton}
+          onMouseEnter={(e) => e.currentTarget.style.color = COLOR_PRIMARY}
+          onMouseLeave={(e) => e.currentTarget.style.color = '#333'}
+          onClick={() => navigate('/profil')}
+          aria-label="Profil"
+        >
+          <User size={22} />
+        </button>
+      </>
+    ) : (
+      // Navigation pour les autres pages
+      <>
+        <a href="/" style={location.pathname === '/' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}>Accueil</a>
+        <a href="/historique" style={styles.navLink}>Graphique</a>
+        <a href="/support" style={location.pathname === '/support' ? { ...styles.navLink, ...styles.navLinkActive } : styles.navLink}>Support</a>
+        {!isAuthenticated && (
+          <>
+            <a href="/connexion" style={{ ...styles.authButton, ...styles.connectButton }}>Se Connecter</a>
+            <a href="/inscription" style={{ ...styles.authButton, ...styles.signupButton }}>S'inscrire</a>
+          </>
+        )}
+      </>
+    )}
   </div>
 )}
 
@@ -153,25 +335,65 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {isMobile && (
         <div style={{ ...styles.mobileMenu, ...(mobileMenuOpen ? styles.mobileMenuOpen : {}) }}>
           <nav style={styles.mobileNavLinks}>
-            <a href="/" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Accueil</a>
-            <a href="/support" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Support</a>
+            {isHistoriquePage ? (
+              // Navigation pour la page Historique
+              <>
+                <a href="/" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Accueil</a>
+                <a href="/monitoring" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Monitoring</a>
+                <a href="/historique" style={{ ...styles.mobileNavLink, color: COLOR_PRIMARY }} onClick={() => setMobileMenuOpen(false)}>Graphique</a>
+                <a href="/support" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Support</a>
+                <a href="/ia" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>IA</a>
+                <div style={{ display: 'flex', gap: '20px', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #e0e0e0' }}>
+                  <button 
+                    style={{ ...styles.iconButton, fontSize: '1.5rem', position: 'relative' }}
+                    onClick={() => {
+                      setNotificationsOpen(!notificationsOpen);
+                      setMobileMenuOpen(false);
+                    }}
+                    aria-label="Notifications"
+                  >
+                    <Bell size={24} />
+                    {notifications.length > 0 && <span style={styles.notificationBadge} />}
+                  </button>
+                  <button 
+                    style={{ ...styles.iconButton, fontSize: '1.5rem' }}
+                    onClick={() => {
+                      navigate('/profil');
+                      setMobileMenuOpen(false);
+                    }}
+                    aria-label="Profil"
+                  >
+                    <User size={24} />
+                  </button>
+                </div>
+              </>
+            ) : (
+              // Navigation pour les autres pages
+              <>
+                <a href="/" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Accueil</a>
+                <a href="/historique" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Graphique</a>
+                <a href="/support" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Support</a>
+              </>
+            )}
           </nav>
-          <div style={styles.mobileAuthButtons}>
-            <a
-              href="/connexion"
-              style={{ ...styles.authButton, ...styles.connectButton, padding: '16px', textAlign: 'center' }}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Se Connecter
-            </a>
-            <a
-              href="/inscription"
-              style={{ ...styles.authButton, ...styles.signupButton, padding: '16px', textAlign: 'center' }}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              S'inscrire
-            </a>
-          </div>
+          {!isAuthenticated && !isHistoriquePage && (
+            <div style={styles.mobileAuthButtons}>
+              <a
+                href="/connexion"
+                style={{ ...styles.authButton, ...styles.connectButton, padding: '16px', textAlign: 'center' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Se Connecter
+              </a>
+              <a
+                href="/inscription"
+                style={{ ...styles.authButton, ...styles.signupButton, padding: '16px', textAlign: 'center' }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                S'inscrire
+              </a>
+            </div>
+          )}
         </div>
       )}
 

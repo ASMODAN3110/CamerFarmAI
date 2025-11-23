@@ -7,7 +7,6 @@ const COLOR_SECONDARY = '#388E3C';
 
 const styles: { [key: string]: React.CSSProperties } = {
   appContainer: { width: '100vw', minHeight: '100vh', overflowX: 'hidden', margin: 0, padding: 0, boxSizing: 'border-box' },
-
   header: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     padding: '12px 20px',
@@ -23,48 +22,36 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
     boxSizing: 'border-box',
   },
-
   logoContainer: { textDecoration: 'none' },
   logoImage: { height: '70px', width: 'auto', transition: 'height 0.3s' },
   logoImageMobile: { height: '55px' },
+  desktopRightMenu: { display: 'flex', alignItems: 'center', gap: '48px', marginRight: '20px' },
 
-// Conteneur qui regroupe TOUT à droite avec espacement parfait
-desktopRightMenu: {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '48px',                  // espacement régulier entre tous les éléments
-  marginRight: '20px',          // un peu de marge à droite pour respirer
-},
+  navLink: {
+    textDecoration: 'none',
+    color: '#333',
+    fontWeight: '600',
+    fontSize: '1.1rem',
+    padding: '8px 0',
+    transition: 'color 0.3s ease',
+  },
+  // Style pour le lien ACTIF
+  navLinkActive: {
+    color: COLOR_PRIMARY,
+    fontWeight: 'bold',
+  },
 
-navLink: {
-  textDecoration: 'none',
-  color: '#333',
-  fontWeight: '600',
-  fontSize: '1.1rem',
-  transition: 'color 0.3s ease',
-  padding: '8px 0',
-},
+  authButton: {
+    padding: '10px 22px',
+    borderRadius: '8px',
+    fontWeight: 'bold',
+    fontSize: '1rem',
+    textDecoration: 'none',
+    transition: 'all 0.35s ease',
+  },
+  connectButton: { backgroundColor: COLOR_SECONDARY, color: 'white' },
+  signupButton: { backgroundColor: COLOR_PRIMARY, color: 'white' },
 
-authButton: {
-  padding: '10px 22px',
-  borderRadius: '8px',
-  fontWeight: 'bold',
-  fontSize: '1rem',
-  textDecoration: 'none',
-  transition: 'all 0.3s ease',
-},
-
-connectButton: {
-  backgroundColor: COLOR_SECONDARY,
-  color: 'white',
-},
-
-signupButton: {
-  backgroundColor: COLOR_PRIMARY,
-  color: 'white',
-},
-
-  // Hamburger visible uniquement en mobile
   hamburger: { background: 'none', border: 'none', fontSize: '1.8rem', cursor: 'pointer', color: '#333' },
 
   mobileMenu: {
@@ -82,11 +69,20 @@ signupButton: {
     boxSizing: 'border-box',
   },
   mobileMenuOpen: { transform: 'translateY(0)' },
-
   mobileNavLinks: { display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '40px' },
-  mobileNavLink: { fontSize: '1.5rem', fontWeight: 'bold', color: '#333', textDecoration: 'none' },
-  mobileAuthButtons: { display: 'flex', flexDirection: 'column', gap: '16px' },
+  mobileNavLink: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    color: '#333',
+    textDecoration: 'none',
+    transition: 'color 0.3s ease',
+  },
+  mobileNavLinkActive: {
+    color: COLOR_PRIMARY,
+    fontWeight: 'bold',
+  },
 
+  mobileAuthButtons: { display: 'flex', flexDirection: 'column', gap: '16px' },
   main: { paddingTop: '90px', minHeight: '100vh', width: '100%', boxSizing: 'border-box' },
 
   footer: { backgroundColor: '#333', color: 'white', padding: '50px 20px 30px', width: '100%', boxSizing: 'border-box' },
@@ -95,28 +91,33 @@ signupButton: {
   footerGridMobile: { gridTemplateColumns: '1fr', textAlign: 'center' },
   footerSection: { minWidth: '140px' },
   footerTitle: { fontSize: '1.2rem', marginBottom: '18px', color: COLOR_PRIMARY, fontWeight: 'bold' },
-  footerLink: { display: 'block', color: '#ddd', textDecoration: 'none', marginBottom: '10px' },
+  footerLink: { display: 'block', color: '#ddd', textDecoration: 'none', marginBottom: '10px', transition: 'color 0.3s ease' },
   socialLinks: { marginTop: '15px', display: 'flex', gap: '20px', justifyContent: 'flex-start' },
   socialLinksCenter: { justifyContent: 'center' },
-  socialIconLink: { color: 'white' },
+  socialIconLink: { color: 'white', transition: 'color 0.3s ease' },
   copyright: { textAlign: 'center', paddingTop: '30px', marginTop: '40px', borderTop: '1px solid #555', fontSize: '0.9rem', color: '#aaa' },
 };
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+  const [hoveredAuth, setHoveredAuth] = useState<string | null>(null);
+  const [hoveredFooterLink, setHoveredFooterLink] = useState<string | null>(null);
+  const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
 
-  // Correction critique : on met à jour l'état au montage + à chaque resize
+  // Détection mobile
   useEffect(() => {
-    const updateSize = () => {
-      const mobile = window.innerWidth <= 900;
-      setIsMobile(mobile);
-    };
-
-    updateSize(); // au premier rendu
+    const updateSize = () => setIsMobile(window.innerWidth <= 900);
+    updateSize();
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, []);
+
+  // Détection de la page actuelle (sans react-router-dom)
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+
+  const isActive = (path: string) => currentPath === path;
 
   return (
     <div style={styles.appContainer}>
@@ -130,18 +131,65 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           />
         </a>
 
-        {/* VERSION DESKTOP */}
-        {/* VERSION DESKTOP : tout aligné à droite avec espacement régulier */}
-{!isMobile && (
-  <div style={styles.desktopRightMenu}>
-    <a href="/" style={styles.navLink}>Accueil</a>
-    <a href="/support" style={styles.navLink}>Support</a>
-    <a href="/connexion" style={{ ...styles.authButton, ...styles.connectButton }}>Se Connecter</a>
-    <a href="/inscription" style={{ ...styles.authButton, ...styles.signupButton }}>S'inscrire</a>
-  </div>
-)}
+        {/* DESKTOP */}
+        {!isMobile && (
+          <div style={styles.desktopRightMenu}>
+            <a
+              href="/"
+              style={{
+                ...styles.navLink,
+                ...(isActive('/') ? styles.navLinkActive : {}),
+                color: isActive('/') ? COLOR_PRIMARY : hoveredNav === 'accueil' ? COLOR_PRIMARY : '#333',
+              }}
+              onMouseEnter={() => setHoveredNav('accueil')}
+              onMouseLeave={() => setHoveredNav(null)}
+            >
+              Accueil
+            </a>
+            <a
+              href="/support"
+              style={{
+                ...styles.navLink,
+                ...(isActive('/support') ? styles.navLinkActive : {}),
+                color: isActive('/support') ? COLOR_PRIMARY : hoveredNav === 'support' ? COLOR_PRIMARY : '#333',
+              }}
+              onMouseEnter={() => setHoveredNav('support')}
+              onMouseLeave={() => setHoveredNav(null)}
+            >
+              Support
+            </a>
+            <a
+              href="/connexion"
+              style={{
+                ...styles.authButton,
+                ...styles.connectButton,
+                backgroundColor: hoveredAuth === 'connect' ? '#2E7D32' : COLOR_SECONDARY,
+                transform: hoveredAuth === 'connect' ? 'translateY(-2px)' : 'none',
+                boxShadow: hoveredAuth === 'connect' ? '0 6px 16px rgba(0,0,0,0.25)' : 'none',
+              }}
+              onMouseEnter={() => setHoveredAuth('connect')}
+              onMouseLeave={() => setHoveredAuth(null)}
+            >
+              Se Connecter
+            </a>
+            <a
+              href="/inscription"
+              style={{
+                ...styles.authButton,
+                ...styles.signupButton,
+                backgroundColor: hoveredAuth === 'signup' ? '#43A047' : COLOR_PRIMARY,
+                transform: hoveredAuth === 'signup' ? 'translateY(-2px)' : 'none',
+                boxShadow: hoveredAuth === 'signup' ? '0 6px 16px rgba(0,0,0,0.25)' : 'none',
+              }}
+              onMouseEnter={() => setHoveredAuth('signup')}
+              onMouseLeave={() => setHoveredAuth(null)}
+            >
+              S'inscrire
+            </a>
+          </div>
+        )}
 
-        {/* VERSION MOBILE : seulement le hamburger */}
+        {/* MOBILE */}
         {isMobile && (
           <button style={styles.hamburger} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
@@ -153,21 +201,61 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {isMobile && (
         <div style={{ ...styles.mobileMenu, ...(mobileMenuOpen ? styles.mobileMenuOpen : {}) }}>
           <nav style={styles.mobileNavLinks}>
-            <a href="/" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Accueil</a>
-            <a href="/support" style={styles.mobileNavLink} onClick={() => setMobileMenuOpen(false)}>Support</a>
+            <a
+              href="/"
+              style={{
+                ...styles.mobileNavLink,
+                ...(isActive('/') ? styles.mobileNavLinkActive : {}),
+                color: isActive('/') ? COLOR_PRIMARY : hoveredNav === 'accueil-mobile' ? COLOR_PRIMARY : '#333',
+              }}
+              onClick={() => setMobileMenuOpen(false)}
+              onMouseEnter={() => setHoveredNav('accueil-mobile')}
+              onMouseLeave={() => setHoveredNav(null)}
+            >
+              Accueil
+            </a>
+            <a
+              href="/support"
+              style={{
+                ...styles.mobileNavLink,
+                ...(isActive('/support') ? styles.mobileNavLinkActive : {}),
+                color: isActive('/support') ? COLOR_PRIMARY : hoveredNav === 'support-mobile' ? COLOR_PRIMARY : '#333',
+              }}
+              onClick={() => setMobileMenuOpen(false)}
+              onMouseEnter={() => setHoveredNav('support-mobile')}
+              onMouseLeave={() => setHoveredNav(null)}
+            >
+              Support
+            </a>
           </nav>
           <div style={styles.mobileAuthButtons}>
             <a
               href="/connexion"
-              style={{ ...styles.authButton, ...styles.connectButton, padding: '16px', textAlign: 'center' }}
+              style={{
+                ...styles.authButton,
+                ...styles.connectButton,
+                padding: '16px',
+                textAlign: 'center',
+                backgroundColor: hoveredAuth === 'connect-mobile' ? '#2E7D32' : COLOR_SECONDARY,
+              }}
               onClick={() => setMobileMenuOpen(false)}
+              onMouseEnter={() => setHoveredAuth('connect-mobile')}
+              onMouseLeave={() => setHoveredAuth(null)}
             >
               Se Connecter
             </a>
             <a
               href="/inscription"
-              style={{ ...styles.authButton, ...styles.signupButton, padding: '16px', textAlign: 'center' }}
+              style={{
+                ...styles.authButton,
+                ...styles.signupButton,
+                padding: '16px',
+                textAlign: 'center',
+                backgroundColor: hoveredAuth === 'signup-mobile' ? '#43A047' : COLOR_PRIMARY,
+              }}
               onClick={() => setMobileMenuOpen(false)}
+              onMouseEnter={() => setHoveredAuth('signup-mobile')}
+              onMouseLeave={() => setHoveredAuth(null)}
             >
               S'inscrire
             </a>
@@ -177,7 +265,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <main style={styles.main}>{children}</main>
 
-      {/* FOOTER (inchangé, juste responsive) */}
+      {/* FOOTER - inchangé */}
       <footer style={styles.footer}>
         <div style={{
           ...styles.footerGrid,
@@ -190,23 +278,23 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div style={styles.footerSection}>
             <div style={styles.footerTitle}>Ressources</div>
-            <a href="/documentation" style={styles.footerLink}>Documentation</a>
-            <a href="/utilisation" style={styles.footerLink}>Guide d'utilisation</a>
-            <a href="/support" style={styles.footerLink}>Support</a>
+            <a href="/documentation" style={{ ...styles.footerLink, color: hoveredFooterLink === 'doc' ? COLOR_PRIMARY : '#ddd' }} onMouseEnter={() => setHoveredFooterLink('doc')} onMouseLeave={() => setHoveredFooterLink(null)}>Documentation</a>
+            <a href="/utilisation" style={{ ...styles.footerLink, color: hoveredFooterLink === 'guide' ? COLOR_PRIMARY : '#ddd' }} onMouseEnter={() => setHoveredFooterLink('guide')} onMouseLeave={() => setHoveredFooterLink(null)}>Guide d'utilisation</a>
+            <a href="/support" style={{ ...styles.footerLink, color: hoveredFooterLink === 'support' ? COLOR_PRIMARY : '#ddd' }} onMouseEnter={() => setHoveredFooterLink('support')} onMouseLeave={() => setHoveredFooterLink(null)}>Support</a>
           </div>
           <div style={styles.footerSection}>
             <div style={styles.footerTitle}>Légal</div>
-            <a href="/confidentialite" style={styles.footerLink}>Confidentialité</a>
-            <a href="/conditions" style={styles.footerLink}>Conditions</a>
-            <a href="/cookies" style={styles.footerLink}>Cookies</a>
+            <a href="/confidentialite" style={{ ...styles.footerLink, color: hoveredFooterLink === 'privacy' ? COLOR_PRIMARY : '#ddd' }} onMouseEnter={() => setHoveredFooterLink('privacy')} onMouseLeave={() => setHoveredFooterLink(null)}>Confidentialité</a>
+            <a href="/conditions" style={{ ...styles.footerLink, color: hoveredFooterLink === 'terms' ? COLOR_PRIMARY : '#ddd' }} onMouseEnter={() => setHoveredFooterLink('terms')} onMouseLeave={() => setHoveredFooterLink(null)}>Conditions</a>
+            <a href="/cookies" style={{ ...styles.footerLink, color: hoveredFooterLink === 'cookies' ? COLOR_PRIMARY : '#ddd' }} onMouseEnter={() => setHoveredFooterLink('cookies')} onMouseLeave={() => setHoveredFooterLink(null)}>Cookies</a>
           </div>
           <div style={styles.footerSection}>
             <div style={styles.footerTitle}>Suivez Nous</div>
             <div style={{ ...styles.socialLinks, ...(window.innerWidth <= 600 ? styles.socialLinksCenter : {}) }}>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style={styles.socialIconLink}><Facebook size={26} /></a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" style={styles.socialIconLink}><Linkedin size={26} /></a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style={styles.socialIconLink}><Instagram size={26} /></a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" style={styles.socialIconLink}><Youtube size={26} /></a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style={{ ...styles.socialIconLink, color: hoveredSocial === 'fb' ? COLOR_PRIMARY : 'white' }} onMouseEnter={() => setHoveredSocial('fb')} onMouseLeave={() => setHoveredSocial(null)}><Facebook size={26} /></a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" style={{ ...styles.socialIconLink, color: hoveredSocial === 'in' ? COLOR_PRIMARY : 'white' }} onMouseEnter={() => setHoveredSocial('in')} onMouseLeave={() => setHoveredSocial(null)}><Linkedin size={26} /></a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style={{ ...styles.socialIconLink, color: hoveredSocial === 'ig' ? COLOR_PRIMARY : 'white' }} onMouseEnter={() => setHoveredSocial('ig')} onMouseLeave={() => setHoveredSocial(null)}><Instagram size={26} /></a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" style={{ ...styles.socialIconLink, color: hoveredSocial === 'yt' ? COLOR_PRIMARY : 'white' }} onMouseEnter={() => setHoveredSocial('yt')} onMouseLeave={() => setHoveredSocial(null)}><Youtube size={26} /></a>
             </div>
           </div>
         </div>

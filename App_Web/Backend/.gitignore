@@ -104,3 +104,17 @@ docs/build/
 # Fichiers de déploiement
 .vercel
 .netlify
+
+# Fichiers TypeScript compilés dans src (garder seulement les sources .ts)
+src/**/*.js
+!src/**/*.config.js
+src/**/*.js.map
+
+# Fichiers de base de données PostgreSQL (dumps, backups)
+*.sql
+*.dump
+*.backup.sql
+*.pg_dump
+
+# Fichiers de configuration sensibles
+.env.backup

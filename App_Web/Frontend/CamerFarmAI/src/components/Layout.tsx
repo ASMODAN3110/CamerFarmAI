@@ -42,20 +42,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: COLOR_PRIMARY,
     fontWeight: 'bold',
   },
-
-<<<<<<< HEAD
-navLink: {
-  textDecoration: 'none',
-  color: '#333',
-  fontWeight: '600',
-  fontSize: '1.1rem',
-  transition: 'color 0.3s ease',
-  padding: '8px 0',
-},
-navLinkActive: {
-  color: COLOR_PRIMARY,
-},
-=======
   authButton: {
     padding: '10px 22px',
     borderRadius: '8px',
@@ -66,7 +52,6 @@ navLinkActive: {
   },
   connectButton: { backgroundColor: COLOR_SECONDARY, color: 'white' },
   signupButton: { backgroundColor: COLOR_PRIMARY, color: 'white' },
->>>>>>> 7c9205815d710455ffc48738d47011ebb8469572
 
   hamburger: { background: 'none', border: 'none', fontSize: '1.8rem', cursor: 'pointer', color: '#333' },
 
@@ -188,7 +173,7 @@ navLinkActive: {
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-<<<<<<< HEAD
+
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { isAuthenticated } = useAuth();
   const location = useLocation();
@@ -223,12 +208,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [notificationsOpen]);
-=======
-  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
-  const [hoveredAuth, setHoveredAuth] = useState<string | null>(null);
-  const [hoveredFooterLink, setHoveredFooterLink] = useState<string | null>(null);
-  const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
->>>>>>> 7c9205815d710455ffc48738d47011ebb8469572
 
   // Détection mobile
   useEffect(() => {
@@ -237,11 +216,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, []);
-
-  // Détection de la page actuelle (sans react-router-dom)
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
-
-  const isActive = (path: string) => currentPath === path;
 
   return (
     <div style={styles.appContainer}>

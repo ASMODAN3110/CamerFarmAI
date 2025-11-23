@@ -53,8 +53,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   graphiquePage: {
     fontFamily: 'Arial, sans-serif',
     padding: '20px',
-    maxWidth: '1400px',
-    margin: '0 auto',
+  
     minHeight: 'calc(100vh - 180px)',
     backgroundColor: '#f5f5f5',
   },
@@ -64,6 +63,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: '20px',
     textAlign: 'center',
     fontStyle: 'italic',
+    fontFamily: 'Arial, sans-serif',
   },
   dashboardBanner: {
     backgroundColor: COLOR_PRIMARY,
@@ -89,6 +89,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
     color: 'white',
     letterSpacing: '2px',
+    fontFamily: 'Arial, sans-serif',
   },
   welcomeSection: {
     backgroundColor: 'white',
@@ -101,6 +102,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '1rem',
     color: '#333',
     lineHeight: '1.6',
+    fontFamily: 'Arial, sans-serif',
   },
   instructionsSection: {
     backgroundColor: 'white',
@@ -114,6 +116,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#555',
     marginBottom: '20px',
     lineHeight: '1.5',
+    fontFamily: 'Arial, sans-serif',
   },
   filtersContainer: {
     display: 'flex',
@@ -138,6 +141,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: '500',
     transition: 'all 0.3s ease',
     whiteSpace: 'nowrap',
+    fontFamily: 'Arial, sans-serif',
   },
   sensorButtonActive: {
     backgroundColor: COLOR_PRIMARY,
@@ -162,6 +166,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
     color: '#333',
     fontWeight: '500',
+    fontFamily: 'Arial, sans-serif',
   },
   datePickerInput: {
     position: 'relative',
@@ -187,6 +192,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     width: '100%',
     minWidth: '120px',
+    fontFamily: 'Arial, sans-serif',
   },
   datePickerIcon: {
     color: '#666',
@@ -227,10 +233,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   graphYLabel: {
     fontSize: '12px',
     fill: '#666',
+    fontFamily: 'Arial, sans-serif',
   },
   graphXLabel: {
     fontSize: '11px',
     fill: '#666',
+    fontFamily: 'Arial, sans-serif',
   },
 };
 

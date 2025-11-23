@@ -1,51 +1,35 @@
-// src/App.tsx
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
 
-import React from 'react';
-// 1. Importations nécessaires pour le routage
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-// 2. Importation des composants que nous avons développés
-import Layout from './components/Layout'; 
-import Home from './Pages/Home'; 
-
-// Importez les futures pages ici
-// import Inscription from './pages/Inscription'; 
-// import Connexion from './pages/Connexion'; 
-
-// Suppression du useState, des logos et du compteur par défaut de Vite.
 function App() {
+  const [count, setCount] = useState(0)
 
   return (
-    // BrowserRouter permet d'activer le routage basé sur les URL du navigateur
-    <BrowserRouter>
-      {/* Le composant Layout enveloppe TOUTES les routes. 
-        Cela garantit que le Header et le Footer s'affichent sur toutes les pages. 
-      */}
-      <Layout>
-        {/* Routes définit l'ensemble des chemins possibles dans l'application */}
-        <Routes>
-          
-          {/* Route principale : Mappe l'URL de base ("/") au composant Home.
-            Ceci "appelle" enfin votre fichier Home.tsx.
-          */}
-          <Route 
-            path="/" 
-            element={<Home />} 
-          />
-          
-          {/* Exemple d'autres routes futures basées sur le Layout.tsx :
-          */}
-          {/* <Route path="/inscription" element={<Inscription />} /> */}
-          {/* <Route path="/connexion" element={<Connexion />} /> */}
-          <Route path="/support" element={<div>Page de Support (à construire)</div>} />
-
-          {/* Optionnel: Gérer les 404 si aucune route ne correspond */}
-          <Route path="*" element={<div>404 | Page Non Trouvée</div>} />
-
-        </Routes>
-      </Layout>
-    </BrowserRouter>
-  );
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
+  )
 }
 
-export default App;
+export default App

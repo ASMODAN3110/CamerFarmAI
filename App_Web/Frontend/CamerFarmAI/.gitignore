@@ -14,13 +14,17 @@ node_modules
 
 # Testing
 coverage
-*.lcov
 .nyc_output
+*.lcov
+*.test.js.snap
 
-# Production
+# Build outputs
 dist
 dist-ssr
 build
+out
+.next
+.nuxt
 *.local
 
 # Environment variables
@@ -45,11 +49,16 @@ tsconfig.tsbuildinfo
 !.vscode/tasks.json
 !.vscode/launch.json
 .idea
+
+# Windows / OS
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -58,13 +67,6 @@ tsconfig.tsbuildinfo
 ehthumbs.db
 Thumbs.db
 Desktop.ini
-
-# Windows
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
 
 # Temporary files
 *.tmp
@@ -87,3 +89,7 @@ Desktop.ini
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Misc
+*.pem
+.vercel

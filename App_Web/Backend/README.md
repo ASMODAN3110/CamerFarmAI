@@ -57,7 +57,7 @@ Contient les scripts de migration de base de données :
 
 ### `/src/models`
 Contient les entités TypeORM :
-- `User.entity.ts` - Modèle utilisateur avec hashage automatique du mot de passe (bcrypt, 12 rounds)
+- `User.entity.ts` - Modèle utilisateur avec hashage automatique du mot de passe (bcrypt, 12 rounds) et enum `UserRole`
 
 ### `/src/routes`
 Contient la définition des routes de l'API :
@@ -186,6 +186,57 @@ Cookie: refreshToken=<refresh_token>
 ```bash
 POST /api/v1/auth/logout
 Authorization: Bearer <access_token>
+
+### Gestion des rôles
+
+#### Créer un utilisateur avec un rôle spécifique
+
+Par défaut, l'inscription crée des utilisateurs avec le rôle `FARMER`. Pour créer des techniciens ou administrateurs :
+
+1. **Créer l'utilisateur via l'API** `/register`
+2. **Modifier le rôle en base de données** :
+
+```sql
+-- Pour un technicien
+UPDATE users SET role = 'technician' WHERE email = 'technicien@example.com';
+
+-- Pour un administrateur
+UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
+```
+
+#### Tester le login avec différents rôles
+
+**Technicien :**
+```json
+POST /api/v1/auth/login
+{
+  "email": "technicien@example.com",
+  "password": "motdepasse123"
+}
+```
+
+**Administrateur :**
+```json
+POST /api/v1/auth/login
+{
+  "email": "admin@example.com",
+  "password": "motdepasse123"
+}
+```
+
+#### Utiliser le middleware restrictTo
+
+Pour protéger une route avec un rôle spécifique :
+
+```typescript
+import { restrictTo } from '../middleware/auth.middleware';
+import { UserRole } from '../models/User.entity';
+
+// Route accessible uniquement aux administrateurs
+router.get('/admin-only', protectRoute, restrictTo(UserRole.ADMIN), handler);
+
+// Route accessible aux techniciens et administrateurs
+router.get('/staff-only', protectRoute, restrictTo(UserRole.TECHNICIAN, UserRole.ADMIN), handler);
 ```
 
 ## Architecture
@@ -215,14 +266,14 @@ Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une
 - [x] Gestion des erreurs HTTP personnalisées
 - [x] Support des cookies HttpOnly pour les refresh tokens
 - [x] Migration de base de données
+- [x] Système de rôles avec enum (FARMER, TECHNICIAN, ADMIN)
+- [x] Middleware de restriction par rôle (restrictTo)
 
 ###  En cours / À faire
 
 - [ ] Tests unitaires
 - [ ] Tests d'intégration
 - [ ] Documentation API (Swagger/OpenAPI)
-- [ ] Gestion des rôles avec enum TypeScript (farmer, advisor, admin)
-- [ ] Endpoint pour modifier les rôles utilisateurs
 - [ ] Réinitialisation de mot de passe
 - [ ] Gestion des langues (fr, en, pidgin)
 - [ ] Rate limiting
@@ -249,10 +300,24 @@ Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une
 | email | VARCHAR | Email (unique, nullable) |
 | firstName | VARCHAR | Prénom (nullable) |
 | lastName | VARCHAR | Nom (nullable) |
-| role | VARCHAR | Rôle utilisateur (farmer par défaut, advisor, admin) |
+| role | ENUM | Rôle utilisateur (voir UserRole ci-dessous) |
 | password | VARCHAR | Mot de passe hashé |
 | createdAt | TIMESTAMP | Date de création |
 | updatedAt | TIMESTAMP | Date de mise à jour |
+
+### Enum UserRole
+
+L'application utilise un enum TypeScript pour les rôles :
+
+```typescript
+export enum UserRole {
+  FARMER = 'farmer',        // Agriculteur (rôle par défaut)
+  TECHNICIAN = 'technician', // Technicien/Conseiller
+  ADMIN = 'admin',          // Administrateur
+}
+```
+
+**Note** : Par défaut, tous les nouveaux utilisateurs sont créés avec le rôle `FARMER`. Pour créer des techniciens ou administrateurs, vous devez modifier le rôle en base de données après l'inscription.
 
 ## Notes importantes
 
@@ -262,8 +327,9 @@ Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une
 - Les tokens d'accès expirent après 15 minutes (configurable via `ACCESS_TOKEN_EXPIRES_IN`)
 - Les refresh tokens expirent après 7 jours (configurable via `REFRESH_TOKEN_EXPIRES_IN`)
 - Le serveur démarre sur le port 3000 par défaut (configurable via `PORT`)
-- Les nouveaux utilisateurs sont créés avec le rôle `farmer` par défaut
+- Les nouveaux utilisateurs sont créés avec le rôle `FARMER` par défaut
 - L'authentification utilise JWT avec support des cookies HttpOnly pour les refresh tokens
+- L'enum `UserRole` est utilisé pour garantir la cohérence des rôles dans toute l'application
 - Le CORS est configuré pour accepter les requêtes depuis `http://localhost:5173` (frontend Vite)
 
 ## Développement

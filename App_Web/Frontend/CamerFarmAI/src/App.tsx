@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import Layout from './components/Layout';
+import Home from './Pages/Home';
+import Graphique from './Pages/Historique';
+import Plantation from './Pages/Plantation';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
+
+// Importez les futures pages ici
+// import Inscription from './pages/Inscription';
+// import Connexion from './pages/Connexion';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      <AuthProvider>
+        {/* Layout assure l'affichage global (header/footer) sur toutes les pages */}
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+
+            <Route
+              path="/historique"
+              element={
+                <ProtectedRoute>
+                  <Graphique />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/plantation"
+              element={
+                <ProtectedRoute>
+                  <Plantation />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Routes temporaires à compléter */}
+            {/* <Route path="/inscription" element={<Inscription />} /> */}
+            {/* <Route path="/connexion" element={<Connexion />} /> */}
+            <Route path="/support" element={<div>Page de Support (à construire)</div>} />
+            <Route path="/profil" element={<div>Page de Profil (à construire)</div>} />
+
+            <Route path="*" element={<div>404 | Page Non Trouvée</div>} />
+          </Routes>
+        </Layout>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

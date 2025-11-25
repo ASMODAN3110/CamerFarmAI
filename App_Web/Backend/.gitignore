@@ -110,7 +110,7 @@ src/**/*.js
 !src/**/*.config.js
 src/**/*.js.map
 
-# Fichiers de base de données PostgreSQL (dumps, backups)
+# Fichiers de base de données PostgreSQL locaux (dumps, backups)
 *.sql
 *.dump
 *.backup.sql

@@ -57,7 +57,7 @@ Contient les scripts de migration de base de données :
 
 ### `/src/models`
 Contient les entités TypeORM :
-- `User.entity.ts` - Modèle utilisateur avec hashage automatique du mot de passe
+- `User.entity.ts` - Modèle utilisateur avec hashage automatique du mot de passe (bcrypt, 12 rounds)
 
 ### `/src/routes`
 Contient la définition des routes de l'API :
@@ -85,11 +85,11 @@ Contient les utilitaires :
 - **PostgreSQL** - Base de données relationnelle
 
 ### Sécurité & Authentification
-- **JWT (jsonwebtoken)** - Tokens d'authentification
-- **bcrypt** - Hashage des mots de passe
+- **JWT (jsonwebtoken)** - Tokens d'authentification (access token + refresh token)
+- **bcrypt** - Hashage des mots de passe (12 rounds)
 - **Helmet** - Sécurisation des en-têtes HTTP
 - **express-validator** - Validation des données d'entrée
-- **cookie-parser** - Gestion des cookies HTTP
+- **cookie-parser** - Gestion des cookies HTTP (pour les refresh tokens)
 
 ### Outils de développement
 - **ts-node** - Exécution TypeScript
@@ -176,6 +176,18 @@ GET /api/v1/auth/me
 Authorization: Bearer <access_token>
 ```
 
+#### Rafraîchir le token
+```bash
+POST /api/v1/auth/refresh
+Cookie: refreshToken=<refresh_token>
+```
+
+#### Déconnexion
+```bash
+POST /api/v1/auth/logout
+Authorization: Bearer <access_token>
+```
+
 ## Architecture
 
 Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une API REST :
@@ -209,7 +221,8 @@ Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une
 - [ ] Tests unitaires
 - [ ] Tests d'intégration
 - [ ] Documentation API (Swagger/OpenAPI)
-- [ ] Gestion des rôles (farmer, advisor, admin)
+- [ ] Gestion des rôles avec enum TypeScript (farmer, advisor, admin)
+- [ ] Endpoint pour modifier les rôles utilisateurs
 - [ ] Réinitialisation de mot de passe
 - [ ] Gestion des langues (fr, en, pidgin)
 - [ ] Rate limiting
@@ -236,7 +249,7 @@ Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une
 | email | VARCHAR | Email (unique, nullable) |
 | firstName | VARCHAR | Prénom (nullable) |
 | lastName | VARCHAR | Nom (nullable) |
-| role | VARCHAR | Rôle (farmer, advisor, admin) |
+| role | VARCHAR | Rôle utilisateur (farmer par défaut, advisor, admin) |
 | password | VARCHAR | Mot de passe hashé |
 | createdAt | TIMESTAMP | Date de création |
 | updatedAt | TIMESTAMP | Date de mise à jour |
@@ -246,9 +259,12 @@ Cette structure suit le pattern **MVC (Model-View-Controller)** adapté pour une
 - Le point d'entrée de l'application est `src/index.ts`
 - Les variables d'environnement doivent être configurées dans `.env`
 - La synchronisation automatique de la base de données est activée en développement (`synchronize: true`)
-- Les tokens d'accès expirent après 15 minutes
-- Les refresh tokens expirent après 7 jours
-- Le serveur démarre sur le port 3000 par défaut
+- Les tokens d'accès expirent après 15 minutes (configurable via `ACCESS_TOKEN_EXPIRES_IN`)
+- Les refresh tokens expirent après 7 jours (configurable via `REFRESH_TOKEN_EXPIRES_IN`)
+- Le serveur démarre sur le port 3000 par défaut (configurable via `PORT`)
+- Les nouveaux utilisateurs sont créés avec le rôle `farmer` par défaut
+- L'authentification utilise JWT avec support des cookies HttpOnly pour les refresh tokens
+- Le CORS est configuré pour accepter les requêtes depuis `http://localhost:5173` (frontend Vite)
 
 ## Développement
 
